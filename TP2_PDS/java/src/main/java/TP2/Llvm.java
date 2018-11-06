@@ -7,138 +7,170 @@ import java.util.ArrayList;
 // and methods to generate its string representation
 
 public class Llvm {
-  static public class IR {
-    List<Instruction> header; // IR instructions to be placed before the code (global definitions)
-    List<Instruction> code;   // main code
+	static public class IR {
+		List<Instruction> header; // IR instructions to be placed before the code (global definitions)
+		List<Instruction> code;   // main code
 
-    public IR(List<Instruction> header, List<Instruction> code) {
-      this.header = header;
-      this.code = code;
-    }
+		public IR(List<Instruction> header, List<Instruction> code) {
+			this.header = header;
+			this.code = code;
+		}
 
-    // append an other IR
-    public IR append(IR other) {
-      header.addAll(other.header);
-      code.addAll(other.code);
-      return this;
-    }
+		// append an other IR
+		public IR append(IR other) {
+			header.addAll(other.header);
+			code.addAll(other.code);
+			return this;
+		}
 
-    // append a code instruction
-    public IR appendCode(Instruction inst) {
-      code.add(inst);
-      return this;
-    }
+		// append a code instruction
+		public IR appendCode(Instruction inst) {
+			code.add(inst);
+			return this;
+		}
 
-    // append a code header
-    public IR appendHeader(Instruction inst) {
-      header.add(inst);
-      return this;
-    }
+		// append a code header
+		public IR appendHeader(Instruction inst) {
+			header.add(inst);
+			return this;
+		}
 
-    // Final string generation
-    public String toString() {
-      // This header describe to LLVM the target
-      // and declare the external function printf
-      StringBuilder r = new StringBuilder("; Target\n" +
-        "target triple = \"x86_64-unknown-linux-gnu\"\n" +
-        "; External declaration of the printf function\n" +
-        "declare i32 @printf(i8* noalias nocapture, ...)\n" +
-        "\n; Actual code begins\n\n");
+		// Final string generation
+		public String toString() {
+			// This header describe to LLVM the target
+			// and declare the external function printf
+			StringBuilder r = new StringBuilder("; Target\n" +
+					"target triple = \"x86_64-unknown-linux-gnu\"\n" +
+					"; External declaration of the printf function\n" +
+					"declare i32 @printf(i8* noalias nocapture, ...)\n" +
+					"\n; Actual code begins\n\n");
 
-      for(Instruction inst: header)
-        r.append(inst);
+			for(Instruction inst: header)
+				r.append(inst);
 
-      r.append("\n\n");
+			r.append("\n\n");
 
-      // We create the function main
-      // TODO : remove this when you extend the language
-      r.append("define i32 @main() {\n");
-
-
-      for(Instruction inst: code)
-        r.append(inst);
-
-      // TODO : remove this when you extend the language
-      r.append("}\n");
-
-      return r.toString();
-    }
-  }
-
-  // Returns a new empty list of instruction, handy
-  static public List<Instruction> empty() {
-    return new ArrayList<Instruction>();
-  }
+			// We create the function main
+			// TODO : remove this when you extend the language
+			r.append("define i32 @main() {\n");
 
 
-  // LLVM Types
-  static public abstract class Type {
-    public abstract String toString();
-  }
+			for(Instruction inst: code)
+				r.append(inst);
 
-  static public class Int extends Type {
-    public String toString() {
-      return "i32";
-    }
-  }
+			// TODO : remove this when you extend the language
+			r.append("}\n");
 
-  // TODO : other types
+			return r.toString();
+		}
+	}
+
+	// Returns a new empty list of instruction, handy
+	static public List<Instruction> empty() {
+		return new ArrayList<Instruction>();
+	}
 
 
-  // LLVM IR Instructions
-  static public abstract class Instruction {
-    public abstract String toString();
-  }
+	// LLVM Types
+	static public abstract class Type {
+		public abstract String toString();
+	}
 
-  static public class Add extends Instruction {
-    Type type;
-    String left;
-    String right;
-    String lvalue;
+	static public class Int extends Type {
+		public String toString() {
+			return "i32";
+		}
+	}
 
-    public Add(Type type, String left, String right, String lvalue) {
-      this.type = type;
-      this.left = left;
-      this.right = right;
-      this.lvalue = lvalue;
-    }
+	// TODO : other types
 
-    public String toString() {
-      return lvalue + " = add " + type + " " + left + ", " + right +  "\n";
-    }
-  }
 
-  static public class Return extends Instruction {
-    Type type;
-    String value;
+	// LLVM IR Instructions
+	static public abstract class Instruction {
+		public abstract String toString();
+	}
 
-    public Return(Type type, String value) {
-      this.type = type;
-      this.value = value;
-    }
+	static public class Add extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
 
-    public String toString() {
-      return "ret " + type + " " + value + "\n";
-    }
-  }
-  
-  static public class Affect extends Instruction {
-	  Type rType;
-	  String rValue;
-	  Type identType;
-	  String ident;
-	    
-	  public Affect(Type type, String rValue, Type identType, String ident) {
-		  this.rType = type;
-		  this.rValue = rValue;
-		  this.identType = identType;
-		  this.ident = ident;
-	  }
-	  
-	  public String toString() {
-		  return "store" + this.rType + " " + this.rValue + ", " + this.identType + "* " + this.ident + "\n";
-	  }
-  }
+		public Add(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
 
-  // TODO : other instructions
+		public String toString() {
+			return lvalue + " = add " + type + " " + left + ", " + right +  "\n";
+		}
+	}
+
+	static public class Return extends Instruction {
+		Type type;
+		String value;
+
+		public Return(Type type, String value) {
+			this.type = type;
+			this.value = value;
+		}
+
+		public String toString() {
+			return "ret " + type + " " + value + "\n";
+		}
+	}
+
+	static public class Load extends Instruction {
+		Type iType;
+		String iValue;
+		Type identType;
+		String ident;
+
+		public Load(Type iType, String iValue, Type identType, String ident) {
+			this.iType = iType;
+			this.iValue = iValue;
+			this.identType = identType;
+			this.ident = ident;
+		}
+
+		public String toString() {
+			return this.iValue  + " = load" + this.iType + ", " + this.identType + "* " + this.ident + "\n";
+		}
+	}
+
+	static public class Affect extends Instruction {
+		Type rType;
+		String rValue;
+		Type identType;
+		String ident;
+
+		public Affect(Type type, String rValue, Type identType, String ident) {
+			this.rType = type;
+			this.rValue = rValue;
+			this.identType = identType;
+			this.ident = ident;
+		}
+
+		public String toString() {
+			return "store" + this.rType + " " + this.rValue + ", " + this.identType + "* " + this.ident + "\n";
+		}
+	}
+
+	static public class Alloca extends Instruction {
+		String ident;
+		Type type;
+
+		public Alloca(String ident, Type type) {
+			this.ident = ident;
+			this.type = type;
+		}
+
+		public String toString() {
+			return this.ident + " = alloca" + this.type;
+		}
+	}
+
+	// TODO : other instructions
 }

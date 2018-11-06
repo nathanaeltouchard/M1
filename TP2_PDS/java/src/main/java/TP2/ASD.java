@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 
 public class ASD {
 	static public class Program {
-		Expression e; // What a program contains. TODO : change when you extend the language
+		Instruction e; // What a program contains. TODO : change when you extend the language
 
-		public Program(Expression e) {
+		public Program(Instruction e) {
 			this.e = e;
 		}
 
@@ -21,12 +21,12 @@ public class ASD {
 		public Llvm.IR toIR() throws TypeException {
 			// TODO : change when you extend the language
 			SymbolTable symbT = new SymbolTable();
-			
+
 			// computes the IR of the expression
-			Expression.RetExpression retExpr = e.toIR(symbT);
+			Instruction.RetInstruction retExpr = e.toIR(symbT);
 			// add a return instruction
-			Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
-			retExpr.ir.appendCode(ret);
+			/*Llvm.Instruction ret = new Llvm.Return(retExpr.type.toLlvmType(), retExpr.result);
+			retExpr.ir.appendCode(ret);*/
 
 			return retExpr.ir;
 		}
@@ -119,6 +119,104 @@ public class ASD {
 		}
 	}
 
+	static public class VariableExpression extends Expression {
+		String id;
+
+		public VariableExpression(String id) {
+			this.id = id;
+		}
+
+		public String pp() {
+			return ""+ this.id;
+		}
+
+		public RetExpression toIR(SymbolTable symbT) throws TypeException {
+			SymbolTable.VariableSymbol identSymb = (SymbolTable.VariableSymbol) symbT.lookup(this.id);
+			String ident = "";
+
+			if(identSymb == null) {
+				System.err.println("Error: " + this.id + "' doesn't exist in symbol table.");
+				System.exit(0);
+			}
+			else {
+				ident = "%" + identSymb.ident;
+				//ident += "1";
+			}
+			
+			String result = Utils.newtmp();
+			
+			RetExpression ret = new RetExpression(new Llvm.IR(Llvm.empty(), Llvm.empty()), identSymb.type, result);
+			
+			Llvm.Instruction var = new Llvm.Load(identSymb.type.toLlvmType(), result, identSymb.type.toLlvmType(), ident);
+			
+			ret.ir.appendCode(var);
+			
+			return ret;
+		}
+	}
+	
+	
+	//Classe abstraite Declaration de variable
+	static public abstract class Declaration {
+		String id;
+		
+		public Declaration(String id) {
+			this.id = id;
+		}
+		
+		public abstract String pp();
+		
+		public abstract RetDeclaration toIR(SymbolTable symbT) throws TypeException;
+		
+		static public class RetDeclaration{
+			public Llvm.IR ir;
+			
+			public Type type;
+			
+			public String result;
+			
+			public RetDeclaration(Llvm.IR ir, Type type, String result) {
+				this.ir = ir;
+				this.type = type;
+				this.result = result;
+			}
+		}
+	}
+	
+	//Declaration de variable INT
+	static public class IntegerVariable extends Declaration{
+		
+		public IntegerVariable(String id) {
+			super(id);
+		}
+		
+		public String pp() {
+			return "" + super.id;
+		}
+		
+		public RetDeclaration toIR(SymbolTable symbT) {
+			SymbolTable.VariableSymbol symb = new SymbolTable.VariableSymbol(new IntType(), super.id);
+			String result = "%" + super.id;
+			
+			RetDeclaration ret = new RetVariable(new Llvm.IR(Llvm.empty(), Llvm.empty()), new IntType(), result);
+		
+			if(!symbT.add(symbol)) {
+				System.err.println("Error: the symbol '" + super.ident + "' exist in SymbolTable.");
+			}
+			
+			Llvm.Instruction intVar = new Llvm.Alloca(result, new IntType().toLlvmType());
+			
+			ret.ir.appendCode(intVar);
+			
+			return ret;
+		}
+	}
+	
+	//Declaration de variable de type tableau
+	static public class TabVarialbe extends Declaration{
+		
+	}
+
 	static public abstract class Instruction {
 		public abstract String pp();
 		public abstract RetInstruction toIR(SymbolTable symbT) throws TypeException;
@@ -138,12 +236,12 @@ public class ASD {
 		}
 	}
 
-	static public class AffectExpression extends Instruction {
+	static public class AffectInstruction extends Instruction {
 		String ident;
 
 		Expression right;
 
-		public AffectExpression(String id, Expression right) {
+		public AffectInstruction(String id, Expression right) {
 			this.ident = id;
 			this.right = right;
 		}
@@ -157,12 +255,12 @@ public class ASD {
 			SymbolTable.VariableSymbol identSymb = (SymbolTable.VariableSymbol) symbT.lookup(this.ident);
 
 			if(identSymb == null) {
-				System.err.println("Error, '"+ this.ident+"' doesn't exist in symbol table");
+				System.err.println("Error : '"+ this.ident+"' doesn't exist in symbol table");
 				System.exit(0);
 			}
 			else {
 				ident = "%" + identSymb.ident;
-				ident += "1"; 
+				//ident += "1"; 
 			}
 
 			Expression.RetExpression retExpr = this.right.toIR(symbT);
@@ -182,6 +280,8 @@ public class ASD {
 			return ret;
 		}
 	}
+
+
 
 	// Warning: this is the type from VSL+, not the LLVM types!
 	static public abstract class Type {

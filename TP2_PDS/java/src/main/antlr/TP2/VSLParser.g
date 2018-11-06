@@ -16,7 +16,7 @@ options {
 // TODO : other rules
 
 program returns [ASD.Program out]
-    : e=expression EOF { $out = new ASD.Program($e.out); } // TODO : change when you extend the language
+    : e=instruction EOF { $out = new ASD.Program($e.out); } // TODO : change when you extend the language
     ;
 
 expression returns [ASD.Expression out]
@@ -32,8 +32,13 @@ factor returns [ASD.Expression out]
 
 primary returns [ASD.Expression out]
     : INTEGER { $out = new ASD.IntegerExpression($INTEGER.int); }
+    | IDENT { $out = new ASD.VariableExpression($IDENT.text); }
     // TODO : that's all?
     ;
     
 instruction returns [ASD.Instruction out]
-	: IDENT AFFECT e=expression { $out = new ASD.AffectExpression($IDENT, $e.out); };
+	: IDENT AFFECT e=expression { $out = new ASD.AffectInstruction($IDENT.text, $e.out); };
+
+	
+declaration returns [ASD.Declaration out]
+	: INT (IDENT {$out = new ASD.IntegerVariable($IDENT.text)); })*
