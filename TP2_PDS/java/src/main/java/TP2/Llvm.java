@@ -107,6 +107,60 @@ public class Llvm {
 			return lvalue + " = add " + type + " " + left + ", " + right +  "\n";
 		}
 	}
+	
+	static public class Minus extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
+
+		public Minus(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
+
+		public String toString() {
+			return lvalue + " = sub " + type + " " + left + ", " + right +  "\n";
+		}
+	}
+	
+	static public class Mult extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
+
+		public Mult(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
+
+		public String toString() {
+			return lvalue + " = mul " + type + " " + left + ", " + right +  "\n";
+		}
+	}
+	
+	static public class Div extends Instruction {
+		Type type;
+		String left;
+		String right;
+		String lvalue;
+
+		public Div(Type type, String left, String right, String lvalue) {
+			this.type = type;
+			this.left = left;
+			this.right = right;
+			this.lvalue = lvalue;
+		}
+
+		public String toString() {
+			return lvalue + " = sdiv " + type + " " + left + ", " + right +  "\n";
+		}
+	}
 
 	static public class Return extends Instruction {
 		Type type;

@@ -16,18 +16,23 @@ options {
 // TODO : other rules
 
 program returns [ASD.Program out]
-    : e=instruction EOF { $out = new ASD.Program($e.out); } // TODO : change when you extend the language
+    : e=bloc EOF { $out = new ASD.Program($e.out); }
+     // TODO : change when you extend the language
     ;
+
+bloc returns [ASD.Bloc out]
+	: d=declaration i=instruction {$out = new ASD.Bloc($i.out,$d.out);};
 
 expression returns [ASD.Expression out]
     : l=factor PLUS r=expression  { $out = new ASD.AddExpression($l.out, $r.out); }
-    | f=factor { $out = $f.out; }
-    // TODO : that's all?
+    | l=factor MINUS r=expression { $out = new ASD.MinusExpression($l.out, $r.out);}
+	| f=factor { $out = $f.out; }
     ;
 
 factor returns [ASD.Expression out]
     : p=primary { $out = $p.out; }
-    // TODO : that's all?
+   	| l=factor MULT r=expression { $out = new ASD.MultExpression($l.out, $r.out);}
+    | l=factor DIV r=expression { $out = new ASD.DivExpression($l.out, $r.out);}
     ;
 
 primary returns [ASD.Expression out]
@@ -36,9 +41,9 @@ primary returns [ASD.Expression out]
     // TODO : that's all?
     ;
     
-instruction returns [ASD.Instruction out]
-	: IDENT AFFECT e=expression { $out = new ASD.AffectInstruction($IDENT.text, $e.out); };
+instruction returns [List<ASD.Instruction> out]
+	: IDENT AFFECT e=expression { $out.add(new ASD.AffectInstruction($IDENT.text, $e.out)); };
 
 	
-declaration returns [ASD.Declaration out]
-	: INT (IDENT {$out = new ASD.IntegerVariable($IDENT.text)); })*
+declaration returns [List<ASD.Declaration> out]
+	: INT (IDENT {$out.add(new ASD.IntegerVariable($IDENT.text));});

@@ -22,8 +22,15 @@ fragment ASCII  : ~('\n'|'"');
 LP    : '(' ; // Left parenthesis
 RP    : ')' ;
 PLUS  : '+' ;
+MINUS : '-' ;
+MULT : '*' ;
+DIV : '/' ;
 COLON : ':' ;
 EQUAL : '=' ;
+AFFECT : ':=';
+INT : 'INT';
+LBR : '{';
+RBR : '}';
 
 // TODO : other keywords
 
@@ -31,4 +38,4 @@ EQUAL : '=' ;
 IDENT   : LETTER (LETTER|DIGIT)*;
 TEXT    : '"' (ASCII)* '"' { setText(getText().substring(1, getText().length() - 1)); };
 INTEGER : (DIGIT)+ ;
-AFFECT : ':=';
+
