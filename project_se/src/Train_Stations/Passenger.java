@@ -1,25 +1,27 @@
 package Train_Stations;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 public class Passenger {
 	
-	public String name;
-	public String surname;
-	public int age;
-	public String fidelity;
-	public boolean ticket;
-	public boolean onBoard = false;
+	public int id;
+	public Station destination;
+	ArrayList<Station> stations;
 	
-	public Passenger(String name/*, String surname, int age, String fidelity, boolean ticket, boolean onBoard*/) {
-		this.name = name;
-		/*this.surname = surname;
-		this.age = age;
-		this.fidelity = fidelity;
-		this.ticket = ticket;
-		this.onBoard = onBoard;*/
+	public Passenger(int id , ArrayList<Station> stats) {
+		this.id = id;
+	
 	}
 	
-	public String toString() {
-		return this.name;
+	public void setDestination(Station departure) {
+		Station st0 = departure;
+		while(departure == st0) {
+			Random rand= new Random();
+			st0 = stations.get(rand.nextInt(stations.size()));
+		}
+
+		this.destination=st0;
 	}
 	
 }
