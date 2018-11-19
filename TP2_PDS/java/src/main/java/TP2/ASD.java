@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class ASD {
-	
+
 	public static int iteBloc = 0;
-	
+
 	static public class Program {
 		Bloc e; // What a program contains. TODO : change when you extend the language
 
@@ -356,11 +356,11 @@ public class ASD {
 		public TabVariable(String id) {
 			super(id);
 		}
-		
+
 		public String pp() {
 			return "" + super.id;
 		}
-		
+
 		public RetDeclaration toIR(SymbolTable symbT) {
 			SymbolTable.VariableSymbol symb = new SymbolTable.VariableSymbol(new Int(), super.id);
 			String result = "%" + super.id;
@@ -387,7 +387,7 @@ public class ASD {
 		static public class RetInstruction {
 			// The LLVM IR:
 			public Llvm.IR ir;
-			
+
 			public RetInstruction(Llvm.IR ir) {
 				this.ir = ir;
 			}
@@ -438,55 +438,55 @@ public class ASD {
 			return ret;
 		}
 	}
-	
+
 	static public class Bloc{
-		
+
 		List<Instruction> instructions;
 		List<Declaration> declarations;
-		
+
 		public Bloc(List<Instruction> instructions, List<Declaration> declarations) {
 			this.declarations = declarations;
 			this.instructions = instructions;
 		}
-		
+
 		public String pp() {
 			//Indentation
 			String ret = Utils.indent(iteBloc) + "{\n";
-			
+
 			//Augmente de 1 l'iterateur de bloc
 			iteBloc++;
-			
+
 			//S'il n'y a pas d'instructions
 			if(!this.instructions.isEmpty()) {
 				ret = ret + Utils.indent(iteBloc) + "INT";
 			}
-			
+
 			//Declarations des variables dans le bloc
 			for(Declaration decl : this.declarations) {
 				ret = ret + decl.pp() + ", ";
 			}
-			
+
 			ret = ret + "\n";
-			
+
 			//Instructions à la suite des déclarations
 			for(Instruction instr : this.instructions) {
 				ret = ret + Utils.indent(iteBloc) + instr.pp() + "\n";
 			}
-			
+
 			//Diminue de 1 l'iterateur de bloc
 			iteBloc--;
-			
+
 			return ret = ret + Utils.indent(iteBloc) + "\n}\n";
 		}
-		
+
 		public Llvm.IR toIR(SymbolTable symbT) throws TypeException{
-			
+
 			SymbolTable symb = new SymbolTable(symbT);
-			
+
 			Llvm.IR returnIR = new Llvm.IR(Llvm.empty(), Llvm.empty());
-			
+
 			Declaration.RetDeclaration returnDecl = null;
-			
+
 			for(Declaration decl : this.declarations) {
 				if(returnDecl == null) {
 					returnDecl = decl.toIR(symb);
@@ -495,13 +495,13 @@ public class ASD {
 					returnDecl.ir.append(decl.toIR(symb).ir);
 				}
 			}
-			
+
 			if(returnDecl != null) {
 				returnIR.append(returnDecl.ir);
 			}
-			
+
 			Instruction.RetInstruction returnInstruction = null;
-			
+
 			for(Instruction instr : this.instructions) {
 				if(returnInstruction == null) {
 					returnInstruction = instr.toIR(symb);
@@ -510,11 +510,11 @@ public class ASD {
 					returnInstruction.ir.append(instr.toIR(symb).ir);
 				}
 			}
-			
+
 			if(returnInstruction != null) {
 				returnIR.append(returnInstruction.ir);
 			}
-			
+
 			return returnIR;
 		}
 	}
@@ -531,7 +531,8 @@ public class ASD {
 			return "INT";
 		}
 
-		@Override public boolean equals(Object obj) {
+		@Override 
+		public boolean equals(Object obj) {
 			return obj instanceof Int;
 		}
 
@@ -539,4 +540,58 @@ public class ASD {
 			return new Llvm.Int();
 		}
 	}
+
+	static class ArrayType extends Type {
+		int taille;
+		Type type;
+
+		public ArrayType(Type type) {
+			this.taille = -1;
+			this.type = type;
+		}
+
+		public ArrayType(Type type, int size) {
+			this.taille = size;
+			this.type = type;
+			}
+
+		public void setSize(int size) {
+			this.taille = size;
+		}
+
+		public String pp() {
+			return "[]";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if(obj instanceof Array) {
+				return ((Array) obj).type.equals(this.type);
+			}
+
+			return false;
+		}
+
+		public Llvm.Type toLlvmType() {
+			return new Llvm.Array(this.type.toLlvmType(), this.taille);
+		}
+	}
+
+	static class StringType extends Type {
+
+		public String pp() {
+			return "STRING";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return obj instanceof StringType;
+		}
+
+		@Override
+		public Llvm.Type toLlvmType() {
+			return null;
+		}
+	}
+
 }
